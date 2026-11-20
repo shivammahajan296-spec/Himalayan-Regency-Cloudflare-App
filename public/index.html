@@ -27,22 +27,22 @@
 @media print{
  body{margin:0!important;background:#fff!important;color:#000!important}
  body>*:not(#printDayBook){display:none!important}
- #printDayBook{display:block!important;width:100%;font-family:Georgia,"Times New Roman",serif;color:#000}
- .print-title{text-align:center;margin:0 0 3mm;font-size:31pt;line-height:1;font-weight:900;letter-spacing:.02em}
- .print-date{text-align:center;margin:0 0 5mm;font-size:19pt;line-height:1.1;font-weight:900}
+ #printDayBook{display:block!important;width:100%;font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;color:#000;font-weight:500;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+ .print-title{text-align:center;margin:0 0 3mm;font-family:Georgia,"Times New Roman",serif;font-size:31pt;line-height:1;font-weight:900;letter-spacing:.015em}
+ .print-date{text-align:center;margin:0 0 5mm;font-size:18pt;line-height:1.15;font-weight:800;letter-spacing:.025em}
  .print-ledger,.print-summary{width:100%;border-collapse:collapse;table-layout:fixed}
- .print-ledger{font-size:12pt}
+ .print-ledger{font-size:11.5pt;line-height:1.25}
  .print-ledger th,.print-ledger td,.print-summary th,.print-summary td{border:1.4px solid #111;padding:2.6mm 3mm;vertical-align:middle}
- .print-ledger th{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-align:center;font-size:12.5pt}
+ .print-ledger th{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-align:center;font-size:11.5pt;font-weight:800;letter-spacing:.01em}
  .print-ledger th:nth-child(1),.print-ledger th:nth-child(3){width:31%}
  .print-ledger th:nth-child(2),.print-ledger th:nth-child(4){width:19%}
  .print-ledger td:nth-child(2),.print-ledger td:nth-child(4){text-align:right;font-variant-numeric:tabular-nums}
- .print-ledger tfoot td{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-weight:900;font-size:12.5pt}
- .print-summary{margin-top:6mm;font-size:12.5pt;page-break-inside:avoid;break-inside:avoid}
- .print-summary th{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-align:center;font-size:20pt;line-height:1.05;letter-spacing:.04em}
+ .print-ledger tfoot td{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-weight:800;font-size:11.5pt}
+ .print-summary{margin-top:6mm;font-size:11.5pt;line-height:1.25;page-break-inside:avoid;break-inside:avoid}
+ .print-summary th{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-align:center;font-family:Georgia,"Times New Roman",serif;font-size:19pt;font-weight:900;line-height:1.1;letter-spacing:.035em}
  .print-summary td:first-child{width:72%;font-weight:700}
  .print-summary td:last-child{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
- .print-summary .closing td{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:20pt;font-weight:900}
+ .print-summary .closing td{background:#d8ecfb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:18pt;font-weight:900}
  #printDayBook.compact .print-title{font-size:27pt}
  #printDayBook.compact .print-date{font-size:16pt;margin-bottom:3mm}
  #printDayBook.compact .print-ledger{font-size:10.5pt}
