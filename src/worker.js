@@ -15,13 +15,21 @@ async function validSession(request, env) {
   return (await hmac(env.SESSION_SECRET,match[1]))===match[2];
 }
 const baseCookie='Path=/; HttpOnly; Secure; SameSite=Lax';
-const defaultState={opening:0,entries:[],pending:[],cars:[],sheetTotals:{}};
+const defaultState={opening:0,entries:[],pending:[],cars:[],paymentRecords:[],paymentSheetTotals:{}};
 function validateState(v) {
   if(!v||typeof v!=='object'||Array.isArray(v))throw Error('State must be an object');
   if(!Number.isFinite(v.opening)||Math.abs(v.opening)>1e12)throw Error('Invalid opening balance');
-  if(v.sheetTotals!==undefined) {
-    if(!v.sheetTotals||typeof v.sheetTotals!=='object'||Array.isArray(v.sheetTotals)||Object.keys(v.sheetTotals).length>100000)throw Error('Invalid sheet totals');
-    for(const [date,totals] of Object.entries(v.sheetTotals)) {
+  if(v.paymentRecords!==undefined) {
+    if(!Array.isArray(v.paymentRecords)||v.paymentRecords.length>100000)throw Error('Invalid payment records');
+    const seen=new Set();
+    for(const record of v.paymentRecords) {
+      if(!record||typeof record!=='object'||typeof record.id!=='string'||record.id.length>160||seen.has(record.id)||!/^\d{4}-\d{2}-\d{2}$/.test(record.date)||!['cash_received','online_received','cash_expenses'].includes(record.bucket)||typeof record.particulars!=='string'||!record.particulars||record.particulars.length>1000||!Number.isFinite(record.amount)||record.amount<=0||record.amount>1e10||typeof record.receivedIn!=='string'||record.receivedIn.length>200)throw Error('Invalid payment record');
+      seen.add(record.id);
+    }
+  }
+  if(v.paymentSheetTotals!==undefined) {
+    if(!v.paymentSheetTotals||typeof v.paymentSheetTotals!=='object'||Array.isArray(v.paymentSheetTotals)||Object.keys(v.paymentSheetTotals).length>100000)throw Error('Invalid payment sheet totals');
+    for(const [date,totals] of Object.entries(v.paymentSheetTotals)) {
       if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!totals||typeof totals!=='object')throw Error('Invalid sheet totals');
       for(const key of ['cashReceived','onlineReceived','cashExpenses','grandTotal'])if(!Number.isFinite(totals[key])||Math.abs(totals[key])>1e12)throw Error('Invalid sheet totals');
     }
