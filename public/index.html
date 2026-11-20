@@ -54,7 +54,7 @@ render=function(){
 function vehicleFromDayBookEntry(entry){
  if(entry.type!=='outgoing')return null;const description=String(entry.desc||'').trim();
  if(/\b(dropping|refund|purchase|cleaning|commission|napkin|dahi|food bill)\b/i.test(description))return null;
- const numbered=description.match(/^(\d{4})\b/);if(numbered)return numbered[1];
+ const numbered=description.match(/\b(\d{4})\b/);if(numbered)return numbered[1];
  const named=description.match(/^(.+?)\s+R\.?T\.?(?:\s|$)/i);return named?named[1].trim():null;
 }
 function renderDerivedCarTracker(){
