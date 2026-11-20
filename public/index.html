@@ -5,6 +5,8 @@
 
 .actions{display:flex;gap:10px;justify-content:flex-start;white-space:nowrap}.edit{color:var(--blue);background:transparent;font-size:12px;font-weight:700}#daybook>.cards{grid-template-columns:repeat(5,1fr)}#daybook .split table thead th:nth-child(2),#daybook .split table tbody td:nth-child(2){display:none}#daybook .split table tbody td:nth-child(3){text-align:right}.totalbadge{display:inline-flex;align-items:center;margin-left:8px;padding:3px 7px;border-radius:999px;font-size:10px;line-height:1;font-weight:800;vertical-align:middle;white-space:nowrap}.totalbadge.verified{color:#147655;background:#e8f7f0}.totalbadge.invalid{color:#b42336;background:#ffedf0}.reporttable{table-layout:fixed}.reporttable th:first-child,.reporttable td:first-child{width:20%;text-align:left}.reporttable th:not(:first-child),.reporttable td:not(:first-child){text-align:right}.reporttable td{font-variant-numeric:tabular-nums}.reporttable td:first-child{color:#3c5473;font-weight:650}.reporttable tbody tr:nth-child(even){background:#f8fbff}.reporttable tbody tr:hover{background:#edf5ff}.reporttable td.net-positive{color:var(--green);font-weight:700}.reporttable td.negative{color:var(--red);font-weight:700}dialog{width:min(680px,calc(100% - 28px));border:0;border-radius:16px;padding:0;color:var(--ink);box-shadow:0 24px 70px #0f203c45}dialog::backdrop{background:#10213b99}.dialogbody{padding:22px}.dialogbody h3{margin:0 0 16px}.dialoggrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.dialoggrid .wide{grid-column:1/-1}.dialogactions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}@media(max-width:1040px){#daybook>.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:740px){.dialoggrid{grid-template-columns:1fr}.dialoggrid .wide{grid-column:auto}}
 
+#cars .formarea{display:none}.derivednote{margin:-5px 0 15px;padding:10px 12px;border-radius:9px;background:#edf5ff;color:#3c5473;font-size:12px}.vehicle-dates{color:var(--muted);font-size:12px;line-height:1.5}.car-source{color:var(--muted);font-size:12px}.car-derived-table td:nth-child(2),.car-derived-table td:nth-child(3),.car-derived-table th:nth-child(2),.car-derived-table th:nth-child(3){text-align:right;font-variant-numeric:tabular-nums}.car-derived-table tbody tr:nth-child(even){background:#f8fbff}
+
 .importgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.uploadzone{border:2px dashed #9bb5d9;background:#f5f9ff;border-radius:16px;padding:24px;text-align:center}.uploadzone input{width:100%}.codeinput{width:100%;min-height:170px;resize:vertical;font:12px/1.5 ui-monospace,monospace;padding:12px;border:1px solid #dae2ed;border-radius:10px}.good{color:#16805b}.bad{color:#bc3d3d}.tag{background:#edf4fe;border-radius:6px;padding:3px 8px;display:inline-block;font-size:12px}.help{font-size:13px;line-height:1.55;color:#68778f}.importhint{background:#f5f9ff;border-radius:12px;padding:15px;white-space:pre-wrap;font-size:12px;line-height:1.55}.stack{display:flex;gap:8px;align-items:center;flex-wrap:wrap} @media(max-width:800px){.importgrid{grid-template-columns:1fr}}
 
 #authLayer{position:fixed;z-index:9999;inset:0;background:#f4f7fb;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -35,6 +37,7 @@ render=function(){
   const rawDate=row.cells[0]?.textContent;if(/^\d{4}-\d{2}-\d{2}$/.test(rawDate))row.cells[0].textContent=new Date(rawDate+'T12:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   for(let index=1;index<row.cells.length;index++){const cell=row.cells[index];cell.classList.toggle('negative',cell.textContent.includes('₹-'));cell.classList.toggle('net-positive',index===3&&!cell.textContent.includes('₹-'))}
  }
+ renderDerivedCarTracker();
  for(const bodyId of ['inRows','outRows']){
   const body=$(bodyId),table=body.closest('table'),heading=table.querySelector('thead th:last-child');
   heading.textContent='Actions';
@@ -48,6 +51,25 @@ render=function(){
   });
  }
 };
+function vehicleFromDayBookEntry(entry){
+ if(entry.type!=='outgoing')return null;const description=String(entry.desc||'').trim();
+ if(/\b(dropping|refund|purchase|cleaning|commission|napkin|dahi|food bill)\b/i.test(description))return null;
+ const numbered=description.match(/^(\d{4})\b/);if(numbered)return numbered[1];
+ const named=description.match(/^(.+?)\s+R\.?T\.?(?:\s|$)/i);return named?named[1].trim():null;
+}
+function renderDerivedCarTracker(){
+ const month=$('carMonth').value,records=data.entries.filter(entry=>entry.date.slice(0,7)===month).map(entry=>({entry,vehicle:vehicleFromDayBookEntry(entry)})).filter(record=>record.vehicle),groups={};
+ for(const record of records){const group=groups[record.vehicle]??={rounds:0,amount:0,dates:new Set()};group.rounds++;group.amount+=record.entry.amount;group.dates.add(record.entry.date)}
+ const expense=records.reduce((sum,record)=>sum+record.entry.amount,0);$('carRounds').textContent=records.length;$('carRevenue').textContent=money(expense);$('carCount').textContent=Object.keys(groups).length;
+ $('carRevenue').parentElement.querySelector('.lab').textContent='Total Vehicle Expense';$('carRounds').parentElement.querySelector('.lab').textContent='Day Book Rounds';
+ if(!$('carAverage')){const metric=document.createElement('div');metric.className='metric';metric.innerHTML='<div class="lab">Average Cost / Round</div><strong id="carAverage"></strong>';document.querySelector('#cars .cards').append(metric)}$('carAverage').textContent=money(records.length?expense/records.length:0);
+ const summaryTable=$('carSummary').closest('table'),summaryHead=summaryTable.querySelector('thead tr');summaryTable.classList.add('car-derived-table');summaryHead.innerHTML='<th>Vehicle</th><th class="num">Rounds</th><th class="num">Expense</th><th>Travel Dates</th>';
+ const panel=summaryTable.closest('.panel'),heading=panel.querySelector('h3');heading.textContent='Vehicle Expense Summary from Day Book';if(!$('carDerivedNote')){const note=document.createElement('p');note.id='carDerivedNote';note.className='derivednote';note.textContent='Automatically detected from outgoing Day Book entries. Four-digit vehicle numbers count as one round per entry; non-travel purchases, refunds and dropping charges are excluded.';heading.after(note)}
+ const formatDate=date=>new Date(date+'T12:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+ $('carSummary').innerHTML=Object.entries(groups).sort((a,b)=>b[1].amount-a[1].amount).map(([vehicle,value])=>tdrow([clean(vehicle),value.rounds,money(value.amount),'<span class="vehicle-dates">'+[...value.dates].sort().map(formatDate).join(', ')+'</span>'])).join('')||'<tr><td colspan="4" class="empty">No vehicle rounds detected from Day Book entries this month</td></tr>';
+ const registerTable=$('carRows').closest('table'),registerHead=registerTable.querySelector('thead tr');registerTable.classList.add('car-derived-table');registerHead.innerHTML='<th>Date</th><th>Vehicle</th><th>Day Book Entry</th><th class="num">Amount</th><th>Action</th>';
+ $('carRows').innerHTML=records.sort((a,b)=>b.entry.date.localeCompare(a.entry.date)).map(record=>tdrow([formatDate(record.entry.date),clean(record.vehicle),'<span class="car-source">'+clean(record.entry.desc)+'</span>',money(record.entry.amount),'<button class="edit" data-edit-entry="'+record.entry.id+'">Edit entry</button>'])).join('')||'<tr><td colspan="5" class="empty">No vehicle rounds detected</td></tr>';
+}
 const editEntryDialog=$('editEntryDialog'),editEntryForm=$('editEntryForm');
 document.body.addEventListener('click',event=>{
  const id=event.target.dataset.editEntry;if(!id)return;
