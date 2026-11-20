@@ -15,10 +15,17 @@ async function validSession(request, env) {
   return (await hmac(env.SESSION_SECRET,match[1]))===match[2];
 }
 const baseCookie='Path=/; HttpOnly; Secure; SameSite=Lax';
-const defaultState={opening:0,entries:[],pending:[],cars:[]};
+const defaultState={opening:0,entries:[],pending:[],cars:[],sheetTotals:{}};
 function validateState(v) {
   if(!v||typeof v!=='object'||Array.isArray(v))throw Error('State must be an object');
   if(!Number.isFinite(v.opening)||Math.abs(v.opening)>1e12)throw Error('Invalid opening balance');
+  if(v.sheetTotals!==undefined) {
+    if(!v.sheetTotals||typeof v.sheetTotals!=='object'||Array.isArray(v.sheetTotals)||Object.keys(v.sheetTotals).length>100000)throw Error('Invalid sheet totals');
+    for(const [date,totals] of Object.entries(v.sheetTotals)) {
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!totals||typeof totals!=='object')throw Error('Invalid sheet totals');
+      for(const key of ['cashReceived','onlineReceived','cashExpenses','grandTotal'])if(!Number.isFinite(totals[key])||Math.abs(totals[key])>1e12)throw Error('Invalid sheet totals');
+    }
+  }
   for(const kind of ['entries','pending','cars']) {
     if(!Array.isArray(v[kind]) || v[kind].length>100000)throw Error('Invalid '+kind);
     const seen=new Set();
